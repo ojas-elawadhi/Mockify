@@ -21,10 +21,14 @@ const InterviewItemCard = ({ interview }) => {
       </h2>
 
       <div className="flex justify-between mt-2 gap-5 flex-1">
-        <Button onClick={onFeedback} size="sm" className="flex-1">
+        <Button
+          onClick={onFeedback}
+          size="sm"
+          className="flex-1 cursor-pointer"
+        >
           Feedback
         </Button>
-        <Button onClick={onStart} size="sm" className="flex-1">
+        <Button onClick={onStart} size="sm" className="flex-1 cursor-pointer">
           Start
         </Button>
       </div>
