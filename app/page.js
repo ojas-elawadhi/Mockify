@@ -20,20 +20,20 @@ const page = () => {
         {/* Header Section */}
         <header className="w-full bg-gray-100 shadow-md">
           <div className="container mx-auto flex flex-col md:flex-row justify-between items-center px-6">
-            <Link href="/" className="text-3xl font-bold text-primary">
+            <Link href="/" className="text-3xl font-bold text-black">
               <Image src={"/mockify.png"} width={80} height={40} alt="logo" />
             </Link>
-            <nav className="flex flex-col sm:flex-row flex-wrap items-center justify-between mt-4 md:mt-0 space-y-4 sm:space-y-0 sm:space-x-4 text-primary">
+            <nav className="flex flex-col sm:flex-row flex-wrap items-center justify-between mt-4 md:mt-0 space-y-4 sm:space-y-0 sm:space-x-4 text-black">
               <div className="flex flex-col sm:flex-row items-center space-y-2 sm:space-y-0">
                 <a
                   href="#features"
-                  className="text-lg text-primary hover:text-destructive hover:font-bold mx-2 md:mx-4"
+                  className="text-lg text-black hover:text-destructive hover:font-bold mx-2 md:mx-4"
                 >
                   Features
                 </a>
                 <a
                   href="#testimonials"
-                  className="text-lg text-primary hover:text-destructive hover:font-bold mx-2 md:mx-4"
+                  className="text-lg text-black hover:text-destructive hover:font-bold mx-2 md:mx-4"
                 >
                   Testimonials
                 </a>
@@ -54,13 +54,13 @@ const page = () => {
           <div className="mt-6 flex flex-col md:flex-row">
             <a
               href="/dashboard"
-              className="px-6 py-3 mb-4 md:mb-0 md:mr-4 text-lg font-semibold bg-white text-primary rounded-lg shadow-lg hover:bg-gray-100"
+              className="px-6 py-3 mb-4 md:mb-0 md:mr-4 text-lg font-semibold bg-white text-black rounded-lg shadow-lg hover:bg-gray-100"
             >
               Get Started
             </a>
             <a
               href="#features"
-              className="px-6 py-3 text-lg font-semibold border border-white rounded-lg text-primary hover:bg-white hover:text-black-600"
+              className="px-6 py-3 text-lg font-semibold border border-white rounded-lg text-black hover:bg-white hover:text-black"
             >
               Learn More
             </a>
@@ -81,7 +81,7 @@ const page = () => {
             <div className="flex flex-wrap justify-center mt-8">
               <div className="w-full md:w-1/3 px-4 py-8">
                 <div className="bg-blue-100 rounded-lg p-6 shadow-md">
-                  <h3 className="text-2xl font-semibold text-primary">
+                  <h3 className="text-2xl font-semibold text-black">
                     AI Mock Interviews
                   </h3>
                   <p className="mt-2 text-gray-600">
@@ -92,7 +92,7 @@ const page = () => {
               </div>
               <div className="w-full md:w-1/3 px-4 py-8">
                 <div className="bg-blue-100 rounded-lg p-6 shadow-md">
-                  <h3 className="text-2xl font-semibold text-primary">
+                  <h3 className="text-2xl font-semibold text-black">
                     Instant Feedback
                   </h3>
                   <p className="mt-2 text-gray-600">
@@ -103,7 +103,7 @@ const page = () => {
               </div>
               <div className="w-full md:w-1/3 px-4 py-8">
                 <div className="bg-blue-100 rounded-lg p-6 shadow-md">
-                  <h3 className="text-2xl font-semibold text-primary">
+                  <h3 className="text-2xl font-semibold text-black">
                     Comprehensive Reports
                   </h3>
                   <p className="mt-2 text-gray-600">
