@@ -1,5 +1,7 @@
 import { Lightbulb, Volume2 } from "lucide-react";
 import React from "react";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 const QuestionSection = ({ mockInterviewQuestion, activeQuestionIndex }) => {
   const textToSpeech = (text) => {
@@ -10,45 +12,60 @@ const QuestionSection = ({ mockInterviewQuestion, activeQuestionIndex }) => {
       alert("Sorry, your browser does not support text to speech.");
     }
   };
-  return (
-    mockInterviewQuestion && (
-      <div className=" flex flex-col justify-between p-5 border rounded-lg my-1 bg-secondary">
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5 ">
-          {mockInterviewQuestion &&
-            mockInterviewQuestion.map((question, index) => (
-              <h2
-                className={`p-2  rounded-full text-center text-xs md:text-sm cursor-pointer md:block hidden ${
-                  activeQuestionIndex == index
-                    ? "bg-black text-white"
-                    : "bg-secondary"
-                }`}
-              >
-                Question #{index + 1}
-              </h2>
-            ))}
-        </div>
-        <h2 className="my-5 text-md md:text-lg">
-          {mockInterviewQuestion[activeQuestionIndex]?.Question}
-        </h2>
-        <Volume2
-          className="cursor-pointer"
-          onClick={() =>
-            textToSpeech(mockInterviewQuestion[activeQuestionIndex]?.Question)
-          }
-        />
-        <div className="border rounded-lg p-5 bg-blue-100 mt-18 md:block hidden">
-          <h2 className="flex gap-2 items-center text-blue-800">
-            <Lightbulb />
-            <strong>Note:</strong>
-          </h2>
-          <h2 className="text-sm text-blue-600 my-2">
-            {process.env.NEXT_PUBLIC_QUESTION_NOTE}
-          </h2>
-        </div>
+
+  if (!mockInterviewQuestion) {
+    return (
+      <div className="panel flex min-h-[420px] items-center justify-center p-6 text-muted-foreground">
+        Loading questions...
       </div>
-    )
+    );
+  }
+
+  const activeQuestion = mockInterviewQuestion[activeQuestionIndex]?.Question;
+
+  return (
+    <div className="panel flex min-h-[520px] flex-col justify-between p-6">
+      <div>
+        <div className="mb-6 flex flex-wrap gap-2">
+          {mockInterviewQuestion.map((question, index) => (
+            <div
+              key={`${question.Question}-${index}`}
+              className={cn(
+                "flex h-9 min-w-9 items-center justify-center rounded-md border border-border px-3 text-sm font-semibold text-muted-foreground",
+                activeQuestionIndex === index &&
+                  "border-primary bg-primary text-primary-foreground"
+              )}
+            >
+              {index + 1}
+            </div>
+          ))}
+        </div>
+
+        <p className="section-eyebrow">Question</p>
+        <h2 className="mt-3 text-2xl font-bold leading-9">
+          {activeQuestion}
+        </h2>
+        <Button
+          variant="outline"
+          className="mt-6"
+          onClick={() => textToSpeech(activeQuestion)}
+        >
+          <Volume2 />
+          Play Question
+        </Button>
+      </div>
+
+      <div className="mt-8 rounded-lg border border-info/30 bg-info/10 p-5">
+        <h3 className="flex items-center gap-2 font-semibold text-info">
+          <Lightbulb className="size-5" />
+          Practice note
+        </h3>
+        <p className="mt-3 text-sm leading-6 text-muted-foreground">
+          {process.env.NEXT_PUBLIC_QUESTION_NOTE}
+        </p>
+      </div>
+    </div>
   );
 };
 
 export default QuestionSection;
- 

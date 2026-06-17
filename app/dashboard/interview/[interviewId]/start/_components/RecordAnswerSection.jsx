@@ -2,16 +2,15 @@
 
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
-import React, { useContext, useEffect, useState, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import Webcam from "react-webcam";
-import { Mic } from "lucide-react";
+import { Camera, LoaderCircle, Mic, MicOff, Video } from "lucide-react";
 import { toast } from "sonner";
 import { chatSession } from "@/utils/GeminiAIModal";
 import { db } from "@/utils/db";
 import { UserAnswer } from "@/utils/schema";
 import { useUser } from "@clerk/nextjs";
 import moment from "moment";
-import { WebCamContext } from "@/app/dashboard/layout";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
 const RecordAnswerSection = ({
@@ -23,7 +22,6 @@ const RecordAnswerSection = ({
   const { user } = useUser();
   const [loading, setLoading] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
-  //   const { webCamEnabled, setWebCamEnabled } = useContext(WebCamContext);
   const [webCamEnabled, setWebCamEnabled] = useState(false);
 
   const mediaRecorderRef = useRef(null);
@@ -58,9 +56,7 @@ const RecordAnswerSection = ({
       setIsRecording(true);
     } catch (error) {
       console.error("Error starting recording:", error);
-      toast(
-        "Error starting recording. Please check your microphone permissions."
-      );
+      toast("Error starting recording. Please check your microphone permissions.");
     }
   };
 
@@ -76,7 +72,6 @@ const RecordAnswerSection = ({
       setLoading(true);
       const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
-      // Convert audio blob to base64
       const reader = new FileReader();
       reader.readAsDataURL(audioBlob);
       reader.onloadend = async () => {
@@ -113,12 +108,8 @@ const RecordAnswerSection = ({
       const result = await chatSession.sendMessage(feedbackPrompt);
 
       let MockJsonResp = result.response.text();
-      console.log(MockJsonResp);
-
-      // Removing possible extra text around JSON
       MockJsonResp = MockJsonResp.replace("```json", "").replace("```", "");
 
-      // Attempt to parse JSON
       let jsonFeedbackResp;
       try {
         jsonFeedbackResp = JSON.parse(MockJsonResp);
@@ -138,7 +129,7 @@ const RecordAnswerSection = ({
       });
 
       if (resp) {
-        toast("User Answer recorded successfully");
+        toast("Answer recorded successfully");
       }
       setUserAnswer("");
       setLoading(false);
@@ -150,49 +141,86 @@ const RecordAnswerSection = ({
   };
 
   return (
-    <div className="flex flex-col items-center justify-center overflow-hidden">
-      <div className="flex flex-col justify-center items-center rounded-lg p-5 bg-black mt-4 w-[30rem] ">
+    <div className="panel p-6">
+      <div className="mb-5 flex items-start justify-between gap-4">
+        <div>
+          <p className="section-eyebrow">Answer</p>
+          <h2 className="mt-2 text-2xl font-bold">Record your response</h2>
+          <p className="mt-2 text-sm text-muted-foreground">
+            Stop the recording when you finish. Mockify will transcribe and save
+            feedback automatically.
+          </p>
+        </div>
+        <div className="flex size-11 items-center justify-center rounded-md bg-primary/10 text-primary">
+          <Mic className="size-5" />
+        </div>
+      </div>
+
+      <div className="relative flex aspect-video items-center justify-center overflow-hidden rounded-lg border border-border bg-slate-950">
         {webCamEnabled ? (
-          <Webcam
-            mirrored={true}
-            style={{ height: 250, width: "100%", zIndex: 10 }}
-          />
+          <Webcam mirrored={true} className="h-full w-full object-cover" />
         ) : (
-          <Image
-            src={"/camera.jpg"}
-            width={200}
-            height={200}
-            alt="Camera placeholder"
-          />
+          <>
+            <Image
+              src="/camera.jpg"
+              fill
+              alt="Camera placeholder"
+              className="object-cover opacity-35"
+            />
+            <div className="relative z-10 flex flex-col items-center gap-3 text-slate-200">
+              <Camera className="size-10" />
+              <p className="text-sm font-medium">Camera preview disabled</p>
+            </div>
+          </>
         )}
       </div>
-      <div className="md:flex mt-4 md:mt-8 md:gap-5">
-        <div className="my-4 md:my-0">
-          <Button onClick={() => setWebCamEnabled((prev) => !prev)}>
-            {webCamEnabled ? "Close WebCam" : "Enable WebCam"}
-          </Button>
-        </div>
+
+      <div className="mt-5 grid gap-3 sm:grid-cols-2">
         <Button
           variant="outline"
-          onClick={isRecording ? stopRecording : startRecording}
-          disabled={loading}
+          onClick={() => setWebCamEnabled((prev) => !prev)}
         >
-          {isRecording ? (
-            <h2 className="text-red-400 flex gap-2 ">
-              <Mic /> Stop Recording...
-            </h2>
+          <Video />
+          {webCamEnabled ? "Close Webcam" : "Enable Webcam"}
+        </Button>
+        <Button
+          variant={isRecording ? "destructive" : "default"}
+          onClick={isRecording ? stopRecording : startRecording}
+          disabled={loading || !mockInterviewQuestion}
+        >
+          {loading ? (
+            <>
+              <LoaderCircle className="animate-spin" />
+              Processing
+            </>
+          ) : isRecording ? (
+            <>
+              <MicOff />
+              Stop Recording
+            </>
           ) : (
-            " Record Answer"
+            <>
+              <Mic />
+              Record Answer
+            </>
           )}
         </Button>
       </div>
-      {/* Check transcription code */}
-      {/* {userAnswer && (
-        <div className="mt-4 p-4 bg-gray-100 rounded-lg">
-          <h3 className="font-bold">Transcribed Answer:</h3>
-          <p>{userAnswer}</p>
-        </div>
-      )} */}
+
+      <div className="mt-5 rounded-md border border-border bg-secondary p-4">
+        <p className="text-sm font-semibold">
+          {isRecording
+            ? "Recording in progress"
+            : loading
+              ? "Processing your answer"
+              : "Ready for your answer"}
+        </p>
+        <p className="mt-1 text-sm text-muted-foreground">
+          {isRecording
+            ? "Speak naturally and keep your response focused."
+            : "Use the question panel to replay the prompt whenever you need it."}
+        </p>
+      </div>
     </div>
   );
 };

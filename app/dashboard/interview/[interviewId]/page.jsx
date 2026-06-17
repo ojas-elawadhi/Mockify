@@ -1,23 +1,21 @@
 "use client";
+
 import { db } from "@/utils/db";
 import { MockInterview } from "@/utils/schema";
 import { eq } from "drizzle-orm";
-import { Lightbulb, WebcamIcon } from "lucide-react";
-import React, { useEffect, useState } from "react";
+import { ArrowRight, BriefcaseBusiness, Camera, Info, Layers3, Timer } from "lucide-react";
+import React, { use, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import Webcam from "react-webcam";
 import Link from "next/link";
-import { use } from "react";
 
 const Interview = ({ params: paramsPromise }) => {
-  const params = use(paramsPromise); // Unwrap params properly
-  //   const { webCamEnabled, setWebCamEnabled } = useContext(WebCamContext);
+  const params = use(paramsPromise);
   const [webCamEnabled, setWebCamEnabled] = useState(false);
   const [interviewData, setInterviewData] = useState(null);
 
   useEffect(() => {
     if (params?.interviewId) {
-      console.log(params.interviewId);
       GetInterviewDetails();
     }
   }, [params]);
@@ -32,65 +30,104 @@ const Interview = ({ params: paramsPromise }) => {
   };
 
   return (
-    <div className="my-10">
-      <h2 className="font-bold text-2xl text-center">Let's Get Started</h2>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
-        <div className="flex flex-col my-5 gap-5">
-          <div className="flex flex-col p-5 rounded-lg border gap-5">
-            <h2 className="text-lg">
-              <strong>Job Role/Job Position: </strong>
-              {interviewData?.jobPosition}
-            </h2>
-            <h2 className="text-lg">
-              <strong>Job Description/Job Stack: </strong>
-              {interviewData?.jobDesc}
-            </h2>
-            <h2 className="text-lg">
-              <strong>Years of Experience: </strong>
-              {interviewData?.jobExperience}
-            </h2>
+    <div className="space-y-8">
+      <section className="panel-muted p-6 md:p-8">
+        <p className="section-eyebrow">Interview setup</p>
+        <div className="mt-3 flex flex-col justify-between gap-5 lg:flex-row lg:items-end">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">
+              Check your setup before you begin.
+            </h1>
+            <p className="mt-3 max-w-2xl text-muted-foreground">
+              Review the role details, enable your camera if you want a more
+              realistic practice environment, then start the interview.
+            </p>
           </div>
-          <div className="p-5 border rounded-lg border-yellow-300 bg-yellow-100">
-            <h2 className="flex gap-2 items-center text-yellow-700 mb-2">
-              <Lightbulb />
-              <strong>Information</strong>
+          <Button asChild size="lg">
+            <Link href={`/dashboard/interview/${params.interviewId}/start`}>
+              Start Interview
+              <ArrowRight />
+            </Link>
+          </Button>
+        </div>
+      </section>
+
+      <section className="grid gap-6 lg:grid-cols-[1fr_420px]">
+        <div className="space-y-5">
+          <div className="panel p-6">
+            <h2 className="mb-5 text-xl font-bold">Role details</h2>
+            <div className="grid gap-4">
+              <div className="flex gap-3 rounded-md bg-secondary p-4">
+                <BriefcaseBusiness className="mt-0.5 size-5 text-primary" />
+                <div>
+                  <p className="text-sm text-muted-foreground">Job role</p>
+                  <p className="font-semibold">{interviewData?.jobPosition}</p>
+                </div>
+              </div>
+              <div className="flex gap-3 rounded-md bg-secondary p-4">
+                <Layers3 className="mt-0.5 size-5 text-primary" />
+                <div>
+                  <p className="text-sm text-muted-foreground">
+                    Description / stack
+                  </p>
+                  <p className="font-semibold">{interviewData?.jobDesc}</p>
+                </div>
+              </div>
+              <div className="flex gap-3 rounded-md bg-secondary p-4">
+                <Timer className="mt-0.5 size-5 text-primary" />
+                <div>
+                  <p className="text-sm text-muted-foreground">Experience</p>
+                  <p className="font-semibold">
+                    {interviewData?.jobExperience} years
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="rounded-lg border border-warning/40 bg-warning/15 p-5 text-warning-foreground">
+            <h2 className="flex items-center gap-2 font-semibold">
+              <Info className="size-5" />
+              Before you start
             </h2>
-            <h2 className="mt-3 text-yellow-500">
+            <p className="mt-3 text-sm leading-6">
               {process.env.NEXT_PUBLIC_INFORMATION}
-            </h2>
+            </p>
           </div>
         </div>
-        <div>
-          {webCamEnabled ? (
-            <div className="flex items-center justify-center p-10">
+
+        <div className="panel p-6">
+          <div className="mb-5 flex items-center justify-between">
+            <div>
+              <p className="text-sm text-muted-foreground">Camera preview</p>
+              <h2 className="text-xl font-bold">Webcam check</h2>
+            </div>
+            <Camera className="size-5 text-primary" />
+          </div>
+          <div className="flex aspect-video items-center justify-center overflow-hidden rounded-lg border border-border bg-slate-950">
+            {webCamEnabled ? (
               <Webcam
                 onUserMedia={() => setWebCamEnabled(true)}
                 onUserMediaError={() => setWebCamEnabled(false)}
-                height={300}
-                width={300}
                 mirrored={true}
+                className="h-full w-full object-cover"
               />
-            </div>
-          ) : (
-            <div>
-              <WebcamIcon className="h-72 w-full my-6 p-20 bg-secondary rounded-lg border" />
-            </div>
-          )}
-          <div>
-            <Button
-              className="w-full"
-              onClick={() => setWebCamEnabled((prev) => !prev)}
-            >
-              {webCamEnabled ? "Close WebCam" : "Enable WebCam"}
-            </Button>
+            ) : (
+              <div className="flex flex-col items-center gap-3 text-slate-400">
+                <Camera className="size-12" />
+                <p className="text-sm">Camera disabled</p>
+              </div>
+            )}
           </div>
+          <Button
+            className="mt-4 w-full"
+            variant={webCamEnabled ? "outline" : "default"}
+            onClick={() => setWebCamEnabled((prev) => !prev)}
+          >
+            {webCamEnabled ? "Close Webcam" : "Enable Webcam"}
+          </Button>
         </div>
-      </div>
-      <div className="flex justify-center my-4 md:my-0 md:justify-end md:items-end">
-        <Link href={`/dashboard/interview/${params.interviewId}/start`}>
-          <Button>Start Interview</Button>
-        </Link>
-      </div>
+      </section>
     </div>
   );
 };

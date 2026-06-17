@@ -1,118 +1,65 @@
 "use client";
+
 import React from "react";
 import PricingPlan from "../_components/PricingPlan";
 import { useUser } from "@clerk/nextjs";
+import { Button } from "@/components/ui/button";
+import { Check, ExternalLink } from "lucide-react";
+
+const benefits = [
+  "Expanded practice sessions",
+  "Saved feedback history",
+  "Role-specific question generation",
+  "Audio answer review",
+];
 
 const Upgrade = () => {
   const { user } = useUser();
+
   return (
-    <div className="p-5">
-      <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6 sm:py-12 lg:px-8">
-        <h1 className="text-center font-bold mb-5 text-red-600 text-3xl">
-          Testing Mode
+    <div className="space-y-6">
+      <section className="panel-muted p-6 md:p-8">
+        <p className="section-eyebrow">Plans</p>
+        <h1 className="mt-3 text-3xl font-bold tracking-tight">
+          Upgrade your interview practice.
         </h1>
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:items-center md:gap-8">
-          {PricingPlan.map((item, index) => (
-            <div
-              key={index}
-              className="rounded-2xl border border-gray-200 p-6 shadow-sm sm:px-8 lg:p-12"
-            >
-              <div className="text-center">
-                <h2 className="text-lg font-medium text-gray-900">
-                  {item.duration}
-                  <span className="sr-only">Plan</span>
-                </h2>
+        <p className="mt-3 max-w-2xl text-muted-foreground">
+          These checkout links are currently in Stripe test mode. Choose the
+          cadence that best fits your prep timeline.
+        </p>
+      </section>
 
-                <p className="mt-2 sm:mt-4">
-                  <strong className="text-3xl font-bold text-gray-900 sm:text-4xl">
+      <section className="grid gap-5 md:grid-cols-2">
+        {PricingPlan.map((item) => (
+          <article key={item.priceId} className="panel p-6 md:p-8">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <p className="section-eyebrow">{item.duration}</p>
+                <h2 className="mt-3 text-3xl font-bold">
+                  ${item.price}
+                  <span className="text-base font-medium text-muted-foreground">
                     {" "}
-                    {item.price}${" "}
-                  </strong>
-
-                  <span className="text-sm font-medium text-gray-700">
-                    / {item.duration}
+                    / {item.duration.toLowerCase()}
                   </span>
-                </p>
+                </h2>
               </div>
+              <span className="rounded-md border border-warning/30 bg-warning/15 px-3 py-1 text-xs font-semibold text-warning-foreground">
+                Test mode
+              </span>
+            </div>
 
-              <ul className="mt-6 space-y-2">
-                <li className="flex items-center gap-1">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    strokeWidth="1.5"
-                    stroke="currentColor"
-                    className="size-5 text-indigo-700"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M4.5 12.75l6 6 9-13.5"
-                    />
-                  </svg>
-
-                  <span className="text-gray-700"> 10 users included </span>
+            <ul className="mt-8 space-y-3">
+              {benefits.map((benefit) => (
+                <li key={benefit} className="flex items-center gap-3 text-sm">
+                  <span className="flex size-5 items-center justify-center rounded-full bg-success/15 text-success">
+                    <Check className="size-3.5" />
+                  </span>
+                  {benefit}
                 </li>
+              ))}
+            </ul>
 
-                <li className="flex items-center gap-1">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    strokeWidth="1.5"
-                    stroke="currentColor"
-                    className="size-5 text-indigo-700"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M4.5 12.75l6 6 9-13.5"
-                    />
-                  </svg>
-
-                  <span className="text-gray-700"> 2GB of storage </span>
-                </li>
-
-                <li className="flex items-center gap-1">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    strokeWidth="1.5"
-                    stroke="currentColor"
-                    className="size-5 text-indigo-700"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M4.5 12.75l6 6 9-13.5"
-                    />
-                  </svg>
-
-                  <span className="text-gray-700"> Email support </span>
-                </li>
-
-                <li className="flex items-center gap-1">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    strokeWidth="1.5"
-                    stroke="currentColor"
-                    className="size-5 text-indigo-700"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M4.5 12.75l6 6 9-13.5"
-                    />
-                  </svg>
-
-                  <span className="text-gray-700"> Help center access </span>
-                </li>
-              </ul>
-
+            <Button asChild className="mt-8 w-full" size="lg">
               <a
                 href={
                   item.link +
@@ -120,14 +67,15 @@ const Upgrade = () => {
                   user?.primaryEmailAddress?.emailAddress
                 }
                 target="_blank"
-                className="mt-8 block rounded-full border border-indigo-600 bg-white px-12 py-3 text-center text-sm font-medium text-indigo-600 hover:ring-1 hover:ring-indigo-600 focus:outline-none focus:ring active:text-indigo-500"
+                rel="noreferrer"
               >
-                Get Started
+                Continue to Checkout
+                <ExternalLink />
               </a>
-            </div>
-          ))}
-        </div>
-      </div>
+            </Button>
+          </article>
+        ))}
+      </section>
     </div>
   );
 };

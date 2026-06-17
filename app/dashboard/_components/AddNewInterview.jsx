@@ -1,20 +1,18 @@
 "use client";
-import React, { useState } from "react";
 
+import React, { useState } from "react";
 import {
   Dialog,
-  DialogClose,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { chatSession } from "@/utils/GeminiAIModal";
-import { LoaderCircle } from "lucide-react";
+import { ArrowRight, LoaderCircle, Plus, Sparkles } from "lucide-react";
 import { db } from "@/utils/db";
 import { MockInterview } from "@/utils/schema";
 import { v4 as uuidv4 } from "uuid";
@@ -25,16 +23,15 @@ import { useRouter } from "next/navigation";
 const AddNewInterview = () => {
   const [openDialog, setOpenDialog] = useState(false);
   const [jobPosition, setJobPosition] = useState("");
-  const [jobDesc, setJobDesc] = useState();
-  const [jobExperience, setJobExperience] = useState();
+  const [jobDesc, setJobDesc] = useState("");
+  const [jobExperience, setJobExperience] = useState("");
   const [loading, setLoading] = useState(false);
-  const [jsonResponse, setJsonResponse] = useState([]);
   const { user } = useUser();
   const router = useRouter();
+
   const onSubmit = async (e) => {
     setLoading(true);
     e.preventDefault();
-    console.log(jobPosition, jobDesc, jobExperience);
 
     const InputPrompt = `
   Job Positions: ${jobPosition}, 
@@ -49,115 +46,136 @@ const AddNewInterview = () => {
       .replace("```json", "")
       .replace("```", "")
       .trim();
-    console.log(JSON.parse(MockJsonResp));
-    // const parsedResp = MockJsonResp
-    setJsonResponse(MockJsonResp);
-    console.log(jobPosition, "jobPosition");
+
     if (MockJsonResp && jobPosition && jobDesc && jobExperience) {
       const resp = await db
         .insert(MockInterview)
         .values({
           mockId: uuidv4(),
           jsonMockResp: MockJsonResp,
-          jobPosition: jobPosition,
-          jobDesc: jobDesc,
-          jobExperience: jobExperience,
+          jobPosition,
+          jobDesc,
+          jobExperience,
           createdBy: user?.primaryEmailAddress?.emailAddress,
           createdAt: moment().format("YYYY-MM-DD"),
         })
         .returning({ mockId: MockInterview.mockId });
 
-      console.log("Inserted ID:", resp);
-
       if (resp) {
         setOpenDialog(false);
         router.push("/dashboard/interview/" + resp[0]?.mockId);
       }
-    } else {
-      console.log("ERROR");
     }
     setLoading(false);
   };
 
   return (
-    <div>
-      <div
-        className="p-10 bprder rounded-lg bg-secondary hover:scale-105 gover:shadow-md cursor-pointer transition-all"
+    <>
+      <button
+        type="button"
         onClick={() => setOpenDialog(true)}
+        className="panel group flex min-h-[320px] flex-col justify-between p-6 text-left transition hover:-translate-y-0.5 hover:border-primary/50 hover:shadow-md"
       >
-        <h2 className="text-lg text-center">+ Add New</h2>
-      </div>
-      <Dialog open={openDialog}>
+        <div>
+          <div className="mb-6 flex size-12 items-center justify-center rounded-md bg-primary text-primary-foreground">
+            <Plus className="size-5" />
+          </div>
+          <p className="section-eyebrow">New interview</p>
+          <h2 className="mt-3 text-2xl font-bold tracking-tight">
+            Generate a custom session
+          </h2>
+          <p className="mt-3 text-sm leading-6 text-muted-foreground">
+            Add the target role, stack, and experience level. Mockify will
+            prepare a question set for practice.
+          </p>
+        </div>
+        <div className="mt-8 inline-flex items-center gap-2 text-sm font-semibold text-primary">
+          Start setup
+          <ArrowRight className="size-4 transition group-hover:translate-x-1" />
+        </div>
+      </button>
+
+      <Dialog open={openDialog} onOpenChange={setOpenDialog}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
+            <div className="mb-2 flex size-11 items-center justify-center rounded-md bg-primary/10 text-primary">
+              <Sparkles className="size-5" />
+            </div>
             <DialogTitle className="text-2xl">
-              Tell us more about your job interviewing
+              Create a mock interview
             </DialogTitle>
             <DialogDescription>
-              <form onSubmit={onSubmit}>
-                <div className="my-3">
-                  <h2>
-                    Add Details about your job position, job descritpion and
-                    years of experience
-                  </h2>
-
-                  <div className="mt-7 my-3">
-                    <label className="text-black">Job Role/job Position</label>
-                    <Input
-                      className="mt-1"
-                      placeholder="Ex. Full stack Developer"
-                      required
-                      onChange={(e) => setJobPosition(e.target.value)}
-                    />
-                  </div>
-                  <div className="my-5">
-                    <label className="text-black">
-                      Job Description/ Tech stack (In Short)
-                    </label>
-                    <Textarea
-                      className="placeholder-opacity-50"
-                      placeholder="Ex. React, Angular, Nodejs, Mysql, Nosql, Python"
-                      required
-                      onChange={(e) => setJobDesc(e.target.value)}
-                    />
-                  </div>
-                  <div className="my-5">
-                    <label className="text-black">Years of Experience</label>
-                    <Input
-                      className="mt-1"
-                      placeholder="Ex. 5"
-                      max="50"
-                      type="number"
-                      required
-                      onChange={(e) => setJobExperience(e.target.value)}
-                    />
-                  </div>
-                </div>
-                <div className="flex gap-5 justify-end">
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    onClick={() => setOpenDialog(false)}
-                  >
-                    Cancel
-                  </Button>
-                  <Button type="submit" disabled={loading}>
-                    {loading ? (
-                      <>
-                        <LoaderCircle className="animate-spin" />
-                        Generating From AI
-                      </>
-                    ) : (
-                      "Start Interview"
-                    )}
-                  </Button>
-                </div>
-              </form>
+              Tell Mockify what role you are preparing for. Clear inputs produce
+              better interview questions.
             </DialogDescription>
           </DialogHeader>
+
+          <form onSubmit={onSubmit} className="grid gap-5">
+            <div className="grid gap-2">
+              <label className="text-sm font-semibold" htmlFor="jobPosition">
+                Job role
+              </label>
+              <Input
+                id="jobPosition"
+                placeholder="Full stack developer"
+                required
+                value={jobPosition}
+                onChange={(e) => setJobPosition(e.target.value)}
+              />
+            </div>
+            <div className="grid gap-2">
+              <label className="text-sm font-semibold" htmlFor="jobDesc">
+                Job description or tech stack
+              </label>
+              <Textarea
+                id="jobDesc"
+                placeholder="React, Node.js, PostgreSQL, REST APIs, system design"
+                required
+                value={jobDesc}
+                onChange={(e) => setJobDesc(e.target.value)}
+              />
+            </div>
+            <div className="grid gap-2">
+              <label className="text-sm font-semibold" htmlFor="jobExperience">
+                Years of experience
+              </label>
+              <Input
+                id="jobExperience"
+                placeholder="5"
+                max="50"
+                min="0"
+                type="number"
+                required
+                value={jobExperience}
+                onChange={(e) => setJobExperience(e.target.value)}
+              />
+            </div>
+            <div className="flex flex-col-reverse gap-3 pt-2 sm:flex-row sm:justify-end">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setOpenDialog(false)}
+              >
+                Cancel
+              </Button>
+              <Button type="submit" disabled={loading}>
+                {loading ? (
+                  <>
+                    <LoaderCircle className="animate-spin" />
+                    Generating
+                  </>
+                ) : (
+                  <>
+                    Generate Interview
+                    <ArrowRight />
+                  </>
+                )}
+              </Button>
+            </div>
+          </form>
         </DialogContent>
       </Dialog>
-    </div>
+    </>
   );
 };
 

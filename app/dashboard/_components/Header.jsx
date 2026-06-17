@@ -1,172 +1,104 @@
 "use client";
-import React, { useEffect, useState } from "react";
+
 import Image from "next/image";
-import { UserButton } from "@clerk/nextjs";
-import { usePathname } from "next/navigation";
-import { ModeToggle } from "@/components/ModeToggle";
 import Link from "next/link";
-const Header = ({ logo }) => {
-  const [isUserButtonLoaded, setUserButtonLoaded] = useState(false);
-  const [isOpen, setIsOpen] = useState(false);
+import { usePathname } from "next/navigation";
+import { UserButton } from "@clerk/nextjs";
+import {
+  BriefcaseBusiness,
+  HelpCircle,
+  LayoutDashboard,
+  Menu,
+  X,
+} from "lucide-react";
+import { ModeToggle } from "@/components/ModeToggle";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
+import React from "react";
 
-  const toggleMenu = () => {
-    setIsOpen(!isOpen);
-  };
+const navItems = [
+  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { href: "/dashboard/upgrade", label: "Upgrade", icon: BriefcaseBusiness },
+  { href: "/dashboard/howit", label: "How it works", icon: HelpCircle },
+];
 
-  const SkeletonLoader = () => (
-    <div className="w-8 h-8 bg-gray-300 rounded-full animate-pulse"></div>
-  );
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setUserButtonLoaded(true);
-    }, 1000);
-
-    return () => clearTimeout(timer);
-  }, []);
-
+const Header = () => {
+  const [isOpen, setIsOpen] = React.useState(false);
   const path = usePathname();
 
-  useEffect(() => {
-    console.log(path);
-  }, []);
+  const isActive = (href) =>
+    href === "/dashboard" ? path === href : path?.startsWith(href);
+
   return (
-    <div className=" bg-secondary shadow-sm ">
-      <div className="w-[80%] m-auto flex gap-4 items-center justify-between">
-        <Link className="hidden md:block" href="/">
-          <Image src={"/mockify.png"} width={80} height={40} alt="logo" />
+    <header className="sticky top-0 z-40 border-b border-border bg-background/92 backdrop-blur">
+      <div className="page-shell flex h-16 items-center justify-between gap-4">
+        <Link href="/" className="flex items-center gap-3">
+          <Image src="/mockify.png" width={48} height={48} alt="Mockify" priority />
         </Link>
-        <ul className="hidden md:flex gap-6">
-          <Link href="/dashboard">
-            <li
-              className={`hover:text-black hover:font-bold transition-all cursor-pointer ${
-                path == "/dashboard" && "text-black font-bold"
-              }`}
-            >
-              Dashboard
-            </li>
-          </Link>
-          {/* <Link href="/dashboard/question">
-            <li
-              className={`hover:text-black hover:font-bold transition-all cursor-pointer ${
-                path == "/dashboard/question" && "text-black font-bold"
-              }`}
-            >
-              Questions
-            </li>
-          </Link> */}
 
-          <Link href="/dashboard/upgrade">
-            <li
-              className={`hover:text-black hover:font-bold transition-all cursor-pointer ${
-                path == "/dashboard/upgrade" && "text-black font-bold"
-              }`}
-            >
-              Upgrade
-            </li>
-          </Link>
+        <nav className="hidden items-center rounded-md border border-border bg-card p-1 shadow-sm md:flex">
+          {navItems.map((item) => {
+            const Icon = item.icon;
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={cn(
+                  "inline-flex h-9 items-center gap-2 rounded-md px-3 text-sm font-medium text-muted-foreground transition hover:bg-secondary hover:text-foreground",
+                  isActive(item.href) && "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground"
+                )}
+              >
+                <Icon className="size-4" />
+                {item.label}
+              </Link>
+            );
+          })}
+        </nav>
 
-          <Link href="/dashboard/howit">
-            <li
-              className={`hover:text-black hover:font-bold transition-all cursor-pointer ${
-                path == "/dashboard/howit" && "text-black font-bold"
-              }`}
-            >
-              How it works?
-            </li>
-          </Link>
-        </ul>
-        <div className="md:hidden">
-          <button
-            onClick={toggleMenu}
-            className="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-indigo-500"
-          >
-            <span className="sr-only">Open main menu</span>
-            {isOpen ? (
-              <svg
-                className="h-6 w-6"
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                aria-hidden="true"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M6 18L18 6M6 6l12 12"
-                />
-              </svg>
-            ) : (
-              <svg
-                className="h-6 w-6"
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                aria-hidden="true"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M4 6h16M4 12h16m-7 6h7"
-                />
-              </svg>
-            )}
-          </button>
-        </div>
-        <div className="flex gap-10">
+        <div className="flex items-center gap-2">
           <ModeToggle />
-          {isUserButtonLoaded ? <UserButton /> : <SkeletonLoader />}
+          <div className="flex size-10 items-center justify-center rounded-md border border-border bg-card">
+            <UserButton />
+          </div>
+          <Button
+            variant="outline"
+            size="icon"
+            className="md:hidden"
+            onClick={() => setIsOpen((value) => !value)}
+            aria-expanded={isOpen}
+            aria-label="Toggle navigation"
+          >
+            {isOpen ? <X /> : <Menu />}
+          </Button>
         </div>
       </div>
+
       {isOpen && (
-        <div className="md:hidden">
-          <div className="px-5">
-            <ul className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
-              <Link href="/dashboard">
-                <li
-                  className={`hover:text-black hover:font-bold transition-all cursor-pointer ${
-                    path == "/dashboard" && "text-black font-bold"
-                  }`}
+        <div className="border-t border-border bg-background md:hidden">
+          <nav className="page-shell grid gap-2 py-3">
+            {navItems.map((item) => {
+              const Icon = item.icon;
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  onClick={() => setIsOpen(false)}
+                  className={cn(
+                    "flex items-center gap-3 rounded-md px-3 py-3 text-sm font-medium text-muted-foreground",
+                    isActive(item.href)
+                      ? "bg-primary text-primary-foreground"
+                      : "bg-card hover:bg-secondary hover:text-foreground"
+                  )}
                 >
-                  Dashboard
-                </li>
-              </Link>
-              {/* <Link href="/dashboard/question">
-                <li
-                  className={`hover:text-black hover:font-bold transition-all cursor-pointer ${
-                    path == "/dashboard/question" && "text-black font-bold"
-                  }`}
-                >
-                  Questions
-                </li>
-              </Link> */}
-              <Link href="/dashboard/upgrade">
-                <li
-                  className={`hover:text-black hover:font-bold transition-all cursor-pointer ${
-                    path == "/dashboard/upgrade" && "text-black font-bold"
-                  }`}
-                >
-                  Upgrade
-                </li>
-              </Link>
-              <Link href="/dashboard/howit">
-                <li
-                  className={`hover:text-black hover:font-bold transition-all cursor-pointer ${
-                    path == "/dashboard/howit" && "text-black font-bold"
-                  }`}
-                >
-                  How it works?
-                </li>
-              </Link>
-            </ul>
-          </div>
+                  <Icon className="size-4" />
+                  {item.label}
+                </Link>
+              );
+            })}
+          </nav>
         </div>
       )}
-    </div>
+    </header>
   );
 };
 
