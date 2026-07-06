@@ -6,12 +6,10 @@ import React, { useEffect, useRef, useState } from "react";
 import Webcam from "react-webcam";
 import { Camera, LoaderCircle, Mic, MicOff, Video } from "lucide-react";
 import { toast } from "sonner";
-import { chatSession } from "@/utils/GeminiAIModal";
 import { db } from "@/utils/db";
 import { UserAnswer } from "@/utils/schema";
 import { useUser } from "@clerk/nextjs";
 import moment from "moment";
-import { GoogleGenerativeAI } from "@google/generative-ai";
 
 const RecordAnswerSection = ({
   mockInterviewQuestion,
@@ -26,8 +24,6 @@ const RecordAnswerSection = ({
 
   const mediaRecorderRef = useRef(null);
   const chunksRef = useRef([]);
-
-  const genAI = new GoogleGenerativeAI(process.env.NEXT_PUBLIC_GEMINI_API_KEY);
 
   useEffect(() => {
     if (!isRecording && userAnswer.length > 10) {
@@ -70,22 +66,29 @@ const RecordAnswerSection = ({
   const transcribeAudio = async (audioBlob) => {
     try {
       setLoading(true);
-      const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
-      const reader = new FileReader();
-      reader.readAsDataURL(audioBlob);
-      reader.onloadend = async () => {
-        const base64Audio = reader.result.split(",")[1];
+      const formData = new FormData();
+      formData.append("audio", audioBlob, "answer.webm");
 
-        const result = await model.generateContent([
-          "Transcribe the following audio:",
-          { inlineData: { data: base64Audio, mimeType: "audio/webm" } },
-        ]);
+      const response = await fetch("/api/groq/transcribe", {
+        method: "POST",
+        body: formData,
+      });
 
-        const transcription = result.response.text();
-        setUserAnswer((prevAnswer) => prevAnswer + " " + transcription);
+      if (!response.ok) {
+        throw new Error("Failed to transcribe audio");
+      }
+
+      const data = await response.json();
+
+      if (!data.text) {
+        toast("No speech was detected. Please try recording again.");
         setLoading(false);
-      };
+        return;
+      }
+
+      setUserAnswer((prevAnswer) => prevAnswer + " " + data.text);
+      setLoading(false);
     } catch (error) {
       console.error("Error transcribing audio:", error);
       toast("Error transcribing audio. Please try again.");
@@ -96,26 +99,22 @@ const RecordAnswerSection = ({
   const updateUserAnswer = async () => {
     try {
       setLoading(true);
-      const feedbackPrompt =
-        "Question:" +
-        mockInterviewQuestion[activeQuestionIndex]?.Question +
-        ", User Answer:" +
-        userAnswer +
-        " , Depends on question and user answer for given interview question" +
-        " please give us rating for answer and feedback as area of improvement if any " +
-        "in just 3 to 5 lines to improve it in JSON format with rating field and feedback field";
+      const response = await fetch("/api/groq/feedback", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          question: mockInterviewQuestion[activeQuestionIndex]?.Question,
+          answer: userAnswer,
+        }),
+      });
 
-      const result = await chatSession.sendMessage(feedbackPrompt);
-
-      let MockJsonResp = result.response.text();
-      MockJsonResp = MockJsonResp.replace("```json", "").replace("```", "");
-
-      let jsonFeedbackResp;
-      try {
-        jsonFeedbackResp = JSON.parse(MockJsonResp);
-      } catch (e) {
-        throw new Error("Invalid JSON response: " + MockJsonResp);
+      if (!response.ok) {
+        throw new Error("Failed to generate feedback");
       }
+
+      const jsonFeedbackResp = await response.json();
 
       const resp = await db.insert(UserAnswer).values({
         mockIdRef: interviewData?.mockId,

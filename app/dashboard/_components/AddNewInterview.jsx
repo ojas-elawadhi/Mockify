@@ -11,7 +11,6 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { chatSession } from "@/utils/GeminiAIModal";
 import { ArrowRight, LoaderCircle, Plus, Sparkles } from "lucide-react";
 import { db } from "@/utils/db";
 import { MockInterview } from "@/utils/schema";
@@ -19,6 +18,7 @@ import { v4 as uuidv4 } from "uuid";
 import { useUser } from "@clerk/nextjs";
 import moment from "moment";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 
 const AddNewInterview = () => {
   const [openDialog, setOpenDialog] = useState(false);
@@ -33,40 +33,51 @@ const AddNewInterview = () => {
     setLoading(true);
     e.preventDefault();
 
-    const InputPrompt = `
-  Job Positions: ${jobPosition}, 
-  Job Description: ${jobDesc}, 
-  Years of Experience: ${jobExperience}. 
-  Based on this information, please provide ${process.env.NEXT_PUBLIC_INTERVIEW_QUESTOIN_COUNT} interview questions with answers in JSON format, ensuring "Question" and "Answer" are fields in the JSON.
-`;
-
-    const result = await chatSession.sendMessage(InputPrompt);
-    const MockJsonResp = result.response
-      .text()
-      .replace("```json", "")
-      .replace("```", "")
-      .trim();
-
-    if (MockJsonResp && jobPosition && jobDesc && jobExperience) {
-      const resp = await db
-        .insert(MockInterview)
-        .values({
-          mockId: uuidv4(),
-          jsonMockResp: MockJsonResp,
+    try {
+      const response = await fetch("/api/groq/generate-interview", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
           jobPosition,
           jobDesc,
           jobExperience,
-          createdBy: user?.primaryEmailAddress?.emailAddress,
-          createdAt: moment().format("YYYY-MM-DD"),
-        })
-        .returning({ mockId: MockInterview.mockId });
+        }),
+      });
 
-      if (resp) {
-        setOpenDialog(false);
-        router.push("/dashboard/interview/" + resp[0]?.mockId);
+      if (!response.ok) {
+        throw new Error("Failed to generate interview questions");
       }
+
+      const data = await response.json();
+      const MockJsonResp = JSON.stringify(data.questions);
+
+      if (MockJsonResp && jobPosition && jobDesc && jobExperience) {
+        const resp = await db
+          .insert(MockInterview)
+          .values({
+            mockId: uuidv4(),
+            jsonMockResp: MockJsonResp,
+            jobPosition,
+            jobDesc,
+            jobExperience,
+            createdBy: user?.primaryEmailAddress?.emailAddress,
+            createdAt: moment().format("YYYY-MM-DD"),
+          })
+          .returning({ mockId: MockInterview.mockId });
+
+        if (resp) {
+          setOpenDialog(false);
+          router.push("/dashboard/interview/" + resp[0]?.mockId);
+        }
+      }
+    } catch (error) {
+      console.error(error);
+      toast("Unable to generate interview questions. Please try again.");
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   return (
