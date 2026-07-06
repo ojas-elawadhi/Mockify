@@ -5,7 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { UserButton } from "@clerk/nextjs";
 import {
-  BriefcaseBusiness,
+  // BriefcaseBusiness,
   HelpCircle,
   LayoutDashboard,
   Menu,
@@ -18,7 +18,7 @@ import React from "react";
 
 const navItems = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/dashboard/upgrade", label: "Upgrade", icon: BriefcaseBusiness },
+  // { href: "/dashboard/upgrade", label: "Upgrade", icon: BriefcaseBusiness },
   { href: "/dashboard/howit", label: "How it works", icon: HelpCircle },
 ];
 
