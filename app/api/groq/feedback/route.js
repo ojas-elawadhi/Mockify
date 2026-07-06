@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { callGroqChat, parseJsonFromAiText } from "@/utils/groq";
 
 export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
 export async function POST(request) {
   try {
@@ -34,14 +35,24 @@ Give a concise rating and 3 to 5 lines of feedback with areas to improve.`,
 
     const feedback = parseJsonFromAiText(content);
 
-    return NextResponse.json({
-      rating: feedback.rating,
-      feedback: feedback.feedback,
-    });
+    return NextResponse.json(
+      {
+        rating: feedback.rating,
+        feedback: feedback.feedback,
+      },
+      {
+        headers: {
+          "x-ai-provider": "groq",
+        },
+      },
+    );
   } catch (error) {
     console.error("Groq feedback error:", error);
     return NextResponse.json(
-      { error: "Failed to generate feedback" },
+      {
+        error: "Failed to generate feedback",
+        detail: error.message,
+      },
       { status: 500 },
     );
   }

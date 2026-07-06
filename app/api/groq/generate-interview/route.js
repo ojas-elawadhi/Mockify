@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { callGroqChat, parseJsonFromAiText } from "@/utils/groq";
 
 export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
 export async function POST(request) {
   try {
@@ -36,11 +37,21 @@ Create ${questionCount} interview questions with answers.`,
 
     const questions = parseJsonFromAiText(content);
 
-    return NextResponse.json({ questions });
+    return NextResponse.json(
+      { questions },
+      {
+        headers: {
+          "x-ai-provider": "groq",
+        },
+      },
+    );
   } catch (error) {
     console.error("Groq interview generation error:", error);
     return NextResponse.json(
-      { error: "Failed to generate interview questions" },
+      {
+        error: "Failed to generate interview questions",
+        detail: error.message,
+      },
       { status: 500 },
     );
   }
